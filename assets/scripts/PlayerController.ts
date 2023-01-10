@@ -1,5 +1,5 @@
-import { _decorator, AnimationComponent, Component, EventTouch, Input, input, Node, SkeletalAnimation, sys, Vec2, Vec3 } from 'cc';
-import { GameState } from './GameDefines';
+import { _decorator, AnimationComponent, Component, EventTouch, Input, input, Node, SkeletalAnimation, sys, tween, Vec2, Vec3 } from 'cc';
+import { GameDefines, GameState } from './GameDefines';
 
 const { ccclass, property } = _decorator;
 
@@ -36,6 +36,8 @@ export class PlayerController extends Component {
 
     start() {
         this.playerAnimation.play(PlayerAnimationStatus.idle);
+
+        this.onGamePlaying();
     }
 
     onGameStartChanged(state: GameState) {
@@ -64,7 +66,7 @@ export class PlayerController extends Component {
         this.playerAnimation.play(PlayerAnimationStatus.run);
 
         //const jumpState: AnimationState = this.playerAnimation.getState(PlayerAnimationStatus.jump);
-        this.playerAnimation.on(AnimationComponent.EventType.FINISHED, this.onJumpEnd, this);
+        this.playerAnimation.on(AnimationComponent.EventType.FINISHED, this.onJumpEnd, this.playerAnimation.getState(PlayerAnimationStatus.jump));
 
         input.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
         input.on(Input.EventType.TOUCH_END, this.onTouchEnd, this);
@@ -85,6 +87,7 @@ export class PlayerController extends Component {
     }
 
     private vec_start: Vec2 = new Vec2;
+
     onTouchStart(event: EventTouch) {
         this.vec_start = event.getUILocation();
     }
@@ -95,7 +98,7 @@ export class PlayerController extends Component {
         let vec_delta: Vec2 = new Vec2();
         Vec2.subtract(vec_delta, this.vec_start, vec_end);
 
-        if (Math.abs(vec_delta.x) > Math.abs(vec_delta.y) && Math.abs(vec_delta.y) < 50) {
+        if (Math.abs(vec_delta.x) > Math.abs(vec_delta.y) && Math.abs(vec_delta.y) < 150) {
             if (this.vec_start.x > vec_end.x) {
                 this.move(MoveAction.LEFT);
             } else {
@@ -109,11 +112,66 @@ export class PlayerController extends Component {
     }
 
     move(moveAction: MoveAction) {
+        switch (moveAction) {
+            case MoveAction.LEFT:
+                if (this._moveState === MoveState.RUNNING) {
+                    tween(this.node)
+                        .by(0.1, { position: new Vec3(GameDefines.leftLineX, 0, 0) }, {
+                            easing: "sineOutIn", onComplete: () => {
+                                this._moveState = MoveState.RUNNING;
+                            }
+                        })
+                        .start();
 
+                    this._moveState = MoveState.MOVING_LEFT;
+                }
+
+                break;
+
+            case MoveAction.RIGHT:
+                if (this._moveState === MoveState.RUNNING) {
+                    tween(this.node)
+                        .by(0.1, { position: new Vec3(GameDefines.rightLineX, 0, 0) }, {
+                            easing: "sineOutIn", onComplete: () => {
+                                this._moveState = MoveState.RUNNING;
+                            }
+                        })
+                        .start();
+
+                    this._moveState = MoveState.MOVING_RIGHT;
+                }
+
+                break;
+
+            case MoveAction.UP:
+                if (this._moveState === MoveState.RUNNING) {
+                    this.playerAnimation.crossFade(PlayerAnimationStatus.jump);
+                    let state = this.playerAnimation.getState(PlayerAnimationStatus.jump);
+                    state.speed = 1;
+
+                    tween(this.node)
+                        .by(0.5, { position: new Vec3(0, 0, 10) }, {
+                            easing: "sineOutIn", onComplete: () => {
+                                this._moveState = MoveState.RUNNING;
+                                this.playerAnimation.crossFade(PlayerAnimationStatus.run);
+                            }
+                        })
+                        .start();
+
+                    //this._moveState = MoveState.JUMPING;
+                }
+
+                break;
+        }
     }
 
     update(deltaTime: number) {
         this.node.translate(new Vec3(0, 0, 1));
+    }
+
+    onDestroy() {
+        input.off(Input.EventType.TOUCH_START, this.onTouchStart, this);
+        input.off(Input.EventType.TOUCH_END, this.onTouchEnd, this);
     }
 }
 
