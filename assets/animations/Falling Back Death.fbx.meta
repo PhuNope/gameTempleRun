@@ -1,0 +1,81 @@
+{
+  "ver": "2.3.1",
+  "importer": "fbx",
+  "imported": true,
+  "uuid": "7703c294-f251-40aa-8fe5-da30cb6b3483",
+  "files": [
+    "__original-animation-0.cconb"
+  ],
+  "subMetas": {
+    "a5363": {
+      "importer": "gltf-animation",
+      "uuid": "7703c294-f251-40aa-8fe5-da30cb6b3483@a5363",
+      "displayName": "",
+      "id": "a5363",
+      "name": "Falling Back Death.animation",
+      "userData": {
+        "gltfIndex": 0,
+        "wrapMode": 2,
+        "sample": 30,
+        "span": {
+          "from": 0,
+          "to": 2.200000047683716
+        },
+        "events": []
+      },
+      "ver": "1.0.16",
+      "imported": true,
+      "files": [
+        ".cconb"
+      ],
+      "subMetas": {}
+    },
+    "401e9": {
+      "importer": "gltf-scene",
+      "uuid": "7703c294-f251-40aa-8fe5-da30cb6b3483@401e9",
+      "displayName": "",
+      "id": "401e9",
+      "name": "Falling Back Death.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "fbx": {
+      "smartMaterialEnabled": true
+    },
+    "animationImportSettings": [
+      {
+        "name": "mixamo.com",
+        "duration": 2.200000047683716,
+        "fps": 30,
+        "splits": [
+          {
+            "name": "Falling Back Death",
+            "from": 0,
+            "to": 2.200000047683716,
+            "wrapMode": 2
+          }
+        ]
+      }
+    ],
+    "redirect": "7703c294-f251-40aa-8fe5-da30cb6b3483@401e9",
+    "assetFinder": {
+      "meshes": [],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "7703c294-f251-40aa-8fe5-da30cb6b3483@401e9"
+      ]
+    }
+  }
+}
