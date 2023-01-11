@@ -32,7 +32,7 @@ export class PlayerController extends Component {
     public playerAnimation: SkeletalAnimation;
 
     private _moveState: MoveState;
-    private _gameState: GameState;
+    private _gameState: GameState = GameState.PLAYING;
 
     start() {
         this.playerAnimation.play(PlayerAnimationStatus.idle);
@@ -66,7 +66,7 @@ export class PlayerController extends Component {
         this.playerAnimation.play(PlayerAnimationStatus.run);
 
         //const jumpState: AnimationState = this.playerAnimation.getState(PlayerAnimationStatus.jump);
-        this.playerAnimation.on(AnimationComponent.EventType.FINISHED, this.onJumpEnd, this.playerAnimation.getState(PlayerAnimationStatus.jump));
+        //this.playerAnimation.on(AnimationComponent.EventType.FINISHED, this.onJumpEnd, this.playerAnimation.getState(PlayerAnimationStatus.jump));
 
         input.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
         input.on(Input.EventType.TOUCH_END, this.onTouchEnd, this);
@@ -108,6 +108,7 @@ export class PlayerController extends Component {
 
         if (Math.abs(vec_delta.x) < Math.abs(vec_delta.y) && this.vec_start.y < vec_end.y) {
             this.move(MoveAction.UP);
+            this.playerAnimation.crossFade(PlayerAnimationStatus.jump);
         }
     }
 
@@ -115,14 +116,6 @@ export class PlayerController extends Component {
         switch (moveAction) {
             case MoveAction.LEFT:
                 if (this._moveState === MoveState.RUNNING) {
-                    tween(this.node)
-                        .by(0.1, { position: new Vec3(GameDefines.leftLineX, 0, 0) }, {
-                            easing: "sineOutIn", onComplete: () => {
-                                this._moveState = MoveState.RUNNING;
-                            }
-                        })
-                        .start();
-
                     this._moveState = MoveState.MOVING_LEFT;
                 }
 
@@ -130,43 +123,56 @@ export class PlayerController extends Component {
 
             case MoveAction.RIGHT:
                 if (this._moveState === MoveState.RUNNING) {
-                    tween(this.node)
-                        .by(0.1, { position: new Vec3(GameDefines.rightLineX, 0, 0) }, {
-                            easing: "sineOutIn", onComplete: () => {
-                                this._moveState = MoveState.RUNNING;
-                            }
-                        })
-                        .start();
-
                     this._moveState = MoveState.MOVING_RIGHT;
                 }
 
                 break;
 
             case MoveAction.UP:
+                //set forward
                 if (this._moveState === MoveState.RUNNING) {
-                    this.playerAnimation.crossFade(PlayerAnimationStatus.jump);
-                    let state = this.playerAnimation.getState(PlayerAnimationStatus.jump);
-                    state.speed = 1;
+                    // this.playerAnimation.getState(PlayerAnimationStatus.jump).speed = 1;
+                    // this.playerAnimation.crossFade(PlayerAnimationStatus.jump);
+                    // this._moveState = MoveState.JUMPING;
 
-                    tween(this.node)
-                        .by(0.5, { position: new Vec3(0, 0, 10) }, {
-                            easing: "sineOutIn", onComplete: () => {
-                                this._moveState = MoveState.RUNNING;
-                                this.playerAnimation.crossFade(PlayerAnimationStatus.run);
-                            }
-                        })
-                        .start();
+                    // tween(this.node)
+                    //     .by(0.9, { position: new Vec3(0, 0, 15) }, {
+                    //         easing: "linear", onStart: () => {
+                    //             this.playerAnimation.getState(PlayerAnimationStatus.jump).speed = 1;
+                    //             this.playerAnimation.crossFade(PlayerAnimationStatus.jump);
+                    //             this._moveState = MoveState.JUMPING;
+                    //         }, onComplete: () => {
+                    //             this._moveState = MoveState.RUNNING;
+                    //             this.playerAnimation.play(PlayerAnimationStatus.run);
+                    //         }
+                    //     })
+                    //     .start();
 
                     //this._moveState = MoveState.JUMPING;
+
+                    this.playerAnimation.crossFade(PlayerAnimationStatus.jump);
+
+                    setTimeout(() => {
+                        this.playerAnimation.crossFade(PlayerAnimationStatus.run);
+                    }, 870);
                 }
 
                 break;
         }
     }
 
+    private v3_a: Vec3;
+    private v3_b: Vec3;
     update(deltaTime: number) {
-        this.node.translate(new Vec3(0, 0, 1));
+        if (this._gameState === GameState.PLAYING) {
+            if (this._moveState == MoveState.MOVING_LEFT) {
+                this.v3_a = new Vec3(this.node.getPosition().x + GameDefines.leftLineX, 0, this.node.getPosition().y);
+
+                //Vec3.lerp(this.v3_b)
+            }
+
+            this.node.translate(new Vec3(0, 0, this.speed * deltaTime));
+        }
     }
 
     onDestroy() {

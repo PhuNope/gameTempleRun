@@ -16,7 +16,7 @@
       "userData": {
         "gltfIndex": 0,
         "wrapMode": 2,
-        "sample": 30,
+        "sample": 60,
         "span": {
           "from": 0,
           "to": 0.8666666746139526
@@ -62,6 +62,7 @@
             "name": "Jump",
             "from": 0,
             "to": 0.8666666746139526,
+            "fps": 60,
             "wrapMode": 2
           }
         ]

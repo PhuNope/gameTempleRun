@@ -16,7 +16,7 @@
       "userData": {
         "gltfIndex": 0,
         "wrapMode": 2,
-        "sample": 30,
+        "sample": 60,
         "span": {
           "from": 0,
           "to": 0.6333333253860474
@@ -62,6 +62,7 @@
             "name": "Running",
             "from": 0,
             "to": 0.6333333253860474,
+            "fps": 60,
             "wrapMode": 2
           }
         ]
