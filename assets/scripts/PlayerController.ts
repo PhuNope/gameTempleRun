@@ -1,4 +1,4 @@
-import { _decorator, AnimationComponent, Component, EventTouch, Input, input, Node, SkeletalAnimation, sys, tween, Vec2, Vec3 } from 'cc';
+import { _decorator, AnimationComponent, Collider, Component, Contact2DType, EPhysics2DDrawFlags, EventTouch, Input, input, IPhysics2DContact, ITriggerEvent, Node, PhysicsSystem2D, SkeletalAnimation, sys, tween, Vec2, Vec3 } from 'cc';
 import { GameDefines, GameState } from './GameDefines';
 
 const { ccclass, property } = _decorator;
@@ -32,12 +32,18 @@ export class PlayerController extends Component {
     public playerAnimation: SkeletalAnimation;
 
     private _moveState: MoveState;
-    private _gameState: GameState = GameState.PLAYING;
+    private _gameState: GameState = GameState.INIT;
+
+    public onTriggerBlock: (roadBlockNode: Node) => void;
+
+    private debugPhysic() { PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Aabb | EPhysics2DDrawFlags.Pair | EPhysics2DDrawFlags.CenterOfMass | EPhysics2DDrawFlags.Joint | EPhysics2DDrawFlags.Shape; PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.All; }
 
     start() {
         this.playerAnimation.play(PlayerAnimationStatus.idle);
 
-        this.onGamePlaying();
+        //this.onGamePlaying();
+
+        this.debugPhysic();
     }
 
     onGameStartChanged(state: GameState) {
@@ -73,7 +79,29 @@ export class PlayerController extends Component {
     }
 
     onGameEnd() {
-        this.playerAnimation.off(AnimationComponent.EventType.FINISHED, this.onJumpEnd, this);
+        // tween(this.node)
+        //     .by(2.19, {}, {
+        //         onStart: () => {
+        //             this.playerAnimation.crossFade(PlayerAnimationStatus.dead);
+        //         },
+        //         onComplete: () => {
+        //             this.playerAnimation.pause();
+
+        //             input.off(Input.EventType.TOUCH_START, this.onTouchStart, this);
+        //             input.off(Input.EventType.TOUCH_END, this.onTouchEnd, this);
+        //         }
+        //     });
+
+        // this.playerAnimation.off(AnimationComponent.EventType.FINISHED, this.onJumpEnd, this);
+
+        // input.off(Input.EventType.TOUCH_START, this.onTouchStart, this);
+        // input.off(Input.EventType.TOUCH_END, this.onTouchEnd, this);
+
+        this.playerAnimation.crossFade(PlayerAnimationStatus.dead);
+
+        setTimeout(() => {
+            this.playerAnimation.pause();
+        }, 2190);
 
         input.off(Input.EventType.TOUCH_START, this.onTouchStart, this);
         input.off(Input.EventType.TOUCH_END, this.onTouchEnd, this);
@@ -112,11 +140,22 @@ export class PlayerController extends Component {
         }
     }
 
+    onTriggerEnter(event: ITriggerEvent) {
+        const triggerNode: Node = event.otherCollider.node;
+
+        if (triggerNode.name === "RoadBlock") {
+            if (this.onTriggerBlock) {
+                this.onTriggerBlock(triggerNode);
+            }
+        }
+    }
+
     move(moveAction: MoveAction) {
         switch (moveAction) {
             case MoveAction.LEFT:
                 if (this._moveState === MoveState.RUNNING) {
                     this._moveState = MoveState.MOVING_LEFT;
+                    this.v3_a = new Vec3(this.node.getPosition().x + GameDefines.leftLineX, 0, 0);
                 }
 
                 break;
@@ -124,6 +163,7 @@ export class PlayerController extends Component {
             case MoveAction.RIGHT:
                 if (this._moveState === MoveState.RUNNING) {
                     this._moveState = MoveState.MOVING_RIGHT;
+                    this.v3_a = new Vec3(this.node.getPosition().x + GameDefines.rightLineX, 0, 0);
                 }
 
                 break;
@@ -131,24 +171,6 @@ export class PlayerController extends Component {
             case MoveAction.UP:
                 //set forward
                 if (this._moveState === MoveState.RUNNING) {
-                    // this.playerAnimation.getState(PlayerAnimationStatus.jump).speed = 1;
-                    // this.playerAnimation.crossFade(PlayerAnimationStatus.jump);
-                    // this._moveState = MoveState.JUMPING;
-
-                    // tween(this.node)
-                    //     .by(0.9, { position: new Vec3(0, 0, 15) }, {
-                    //         easing: "linear", onStart: () => {
-                    //             this.playerAnimation.getState(PlayerAnimationStatus.jump).speed = 1;
-                    //             this.playerAnimation.crossFade(PlayerAnimationStatus.jump);
-                    //             this._moveState = MoveState.JUMPING;
-                    //         }, onComplete: () => {
-                    //             this._moveState = MoveState.RUNNING;
-                    //             this.playerAnimation.play(PlayerAnimationStatus.run);
-                    //         }
-                    //     })
-                    //     .start();
-
-                    //this._moveState = MoveState.JUMPING;
 
                     this.playerAnimation.crossFade(PlayerAnimationStatus.jump);
 
@@ -163,12 +185,31 @@ export class PlayerController extends Component {
 
     private v3_a: Vec3;
     private v3_b: Vec3;
+
     update(deltaTime: number) {
         if (this._gameState === GameState.PLAYING) {
-            if (this._moveState == MoveState.MOVING_LEFT) {
-                this.v3_a = new Vec3(this.node.getPosition().x + GameDefines.leftLineX, 0, this.node.getPosition().y);
+            if (this._moveState === MoveState.MOVING_LEFT) {
+                if (this.node.getPosition().x >= this.v3_a.x) {
+                    this._moveState = MoveState.RUNNING;
+                } else {
+                    // Vec3.lerp(this.v3_b, this.node.getPosition(), new Vec3(this.v3_a.x, 0, this.node.getPosition().z), 0.125);
 
-                //Vec3.lerp(this.v3_b)
+                    this.v3_b = new Vec3(this.node.getPosition().x + 0.125, 0, this.node.getPosition().z);
+
+                    this.node.setPosition(this.v3_b);
+                }
+            }
+
+            if (this._moveState === MoveState.MOVING_RIGHT) {
+                if (this.node.getPosition().x <= this.v3_a.x) {
+                    this._moveState = MoveState.RUNNING;
+                } else {
+                    // Vec3.lerp(this.v3_b, this.node.getPosition(), new Vec3(this.v3_a.x, 0, this.node.getPosition().z), 0.125);
+
+                    this.v3_b = new Vec3(this.node.getPosition().x - 0.125, 0, this.node.getPosition().z);
+
+                    this.node.setPosition(this.v3_b);
+                }
             }
 
             this.node.translate(new Vec3(0, 0, this.speed * deltaTime));

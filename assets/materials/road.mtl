@@ -46,13 +46,6 @@
   ],
   "_props": [
     {
-      "tilingOffset": {
-        "__type__": "cc.Vec4",
-        "x": 1,
-        "y": 20,
-        "z": 0,
-        "w": 0
-      },
       "normalStrength": 2.785,
       "normalMap": {
         "__uuid__": "dbec8701-8272-4d9c-8b05-554fbd06c64d@6c48a",

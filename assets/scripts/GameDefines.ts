@@ -4,6 +4,8 @@ class GameDefines {
     static leftLineX: number = 3;
     static rightLineX: number = -3;
     static middleLineX: number = 0;
+
+    static BlockNodeName: string = "RoadBlock";
 }
 
 enum GameState {
