@@ -174,9 +174,32 @@ export class PlayerController extends Component {
 
                     this.playerAnimation.crossFade(PlayerAnimationStatus.jump);
 
-                    setTimeout(() => {
-                        this.playerAnimation.crossFade(PlayerAnimationStatus.run);
-                    }, 870);
+                    // setTimeout(() => {
+                    //     this.playerAnimation.crossFade(PlayerAnimationStatus.run);
+                    // }, 870);
+
+                    let colliderNode = this.playerAnimation.node.getChildByName("Body");
+                    let jumpLength: number = this.playerAnimation.getState(PlayerAnimationStatus.jump).duration;
+
+                    tween(colliderNode.position)
+                        .sequence(
+                            tween(colliderNode.position)
+                                .to(jumpLength / 2, new Vec3(0, 1.5, 0), {
+                                    onUpdate: (target: Vec3, ratio: number) => {
+                                        colliderNode.setPosition(target);
+                                    }
+                                }),
+                            tween(colliderNode.position)
+                                .to(jumpLength / 2, new Vec3(0, 0, 0), {
+                                    onUpdate: (target: Vec3, ratio: number) => {
+                                        colliderNode.setPosition(target);
+                                    }
+                                })
+                        )
+                        .call(() => {
+                            this.playerAnimation.crossFade(PlayerAnimationStatus.run);
+                        })
+                        .start();
                 }
 
                 break;
